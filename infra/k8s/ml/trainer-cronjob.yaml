@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ml-trainer
+  namespace: ml
+spec:
+  # Suspended in PoC to avoid ImagePullBackOff on constrained hosts.
+  suspend: true
+  schedule: "0 * * * *"  # hourly
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: ml-trainer
+          containers:
+            - name: trainer
+              image: ml:latest
+              imagePullPolicy: IfNotPresent
+              args: ["--out-dir", "/models", "--which", "ae", "--epochs", "5"]
+              volumeMounts:
+                - name: models
+                  mountPath: /models
+                - name: graphs
+                  mountPath: /data/graphs
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "500m"
+                limits:
+                  memory: "1Gi"
+                  cpu: "1000m"
+          volumes:
+            - name: models
+              emptyDir: {}
+            - name: graphs
+              emptyDir: {}
+          restartPolicy: OnFailure

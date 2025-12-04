@@ -1,0 +1,41 @@
+# backup original
+cp ml/run_full_train.sh ml/run_full_train.sh.bak
+
+# write new header into a temp file
+cat > /tmp/run_full_train_header.sh <<'HEADER'
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Comprehensive training and validation script for ML baselines and TGNN.
+# Usage: bash ml/run_full_train.sh [output_dir]
+
+# --- ensure project root and src layout on PYTHONPATH and always set PYTHON ---
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# add both project root and the src path where ml_pipeline actually lives
+export PYTHONPATH="$PROJECT_ROOT/ml/src:$PROJECT_ROOT:${PYTHONPATH:-}"
+
+# Always define PYTHON variable. Prefer venv python if available, else try python3/python.
+if [ -x "$PROJECT_ROOT/venv/bin/python" ]; then
+  PYTHON="$PROJECT_ROOT/venv/bin/python"
+else
+  # command -v returns the first available executable path
+  if command -v python3 >/dev/null 2>&1; then
+    PYTHON="$(command -v python3)"
+  elif command -v python >/dev/null 2>&1; then
+    PYTHON="$(command -v python)"
+  else
+    PYTHON="python"
+  fi
+fi
+# ----------------------------------------------------------------------
+HEADER
+
+# append the rest of the original file starting from the OUT= line
+sed -n '/^OUT=/,$p' ml/run_full_train.sh >> /tmp/run_full_train_header.sh
+
+# move the temp file back to the script
+mv /tmp/run_full_train_header.sh ml/run_full_train.sh
+chmod +x ml/run_full_train.sh
+
+# show the new top lines so you can verify
+sed -n '1,60p' ml/run_full_train.sh

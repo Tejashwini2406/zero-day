@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource
+  namespace: ml
+  labels:
+    grafana_datasource: "1"
+data:
+  datasource.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus.ml.svc.cluster.local:9090
+        access: proxy
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-1
+  namespace: ml
+data:
+  grafana_dashboard.json: |
+    {
+      "id": null,
+      "title": "ZeroDay PoC Metrics",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Windows Count",
+          "targets": [
+            {"expr": "zd_windows_count", "legendFormat": "windows"}
+          ],
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+        },
+        {
+          "type": "graph",
+          "title": "Alerts Count",
+          "targets": [
+            {"expr": "zd_alerts_count", "legendFormat": "alerts"}
+          ],
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+        }
+      ],
+      "schemaVersion": 16,
+      "version": 0
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:9.4.10
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin123
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Viewer
+          volumeMounts:
+            - name: grafana-datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-dashboards
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasource
+        - name: grafana-dashboards
+          configMap:
+            name: grafana-dashboard-1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: ml
+spec:
+  selector:
+    app: grafana
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: ClusterIP

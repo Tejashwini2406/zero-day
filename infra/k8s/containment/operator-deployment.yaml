@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: containment-operator
+  namespace: quarantine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: containment-operator
+  template:
+    metadata:
+      labels:
+        app: containment-operator
+    spec:
+      serviceAccountName: containment-operator
+      containers:
+        - name: operator
+          image: containment-operator:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

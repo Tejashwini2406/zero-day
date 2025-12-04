@@ -1,0 +1,34 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: my-cluster
+  namespace: kafka
+spec:
+  kafka:
+    version: "4.0.0"
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
+---
+# KafkaNodePool for the cluster. The Cluster Operator will reconcile this
+# and create broker pods according to the pool configuration. Name follows
+# the convention <cluster-name>-<pool-name>.
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: my-cluster-default
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  replicas: 1
+  roles:
+    - broker
+    - controller
+  storage:
+    type: ephemeral

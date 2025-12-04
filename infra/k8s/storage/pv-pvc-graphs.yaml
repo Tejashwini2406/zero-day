@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: graphs-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /tmp/zero-day-graphs
+  persistentVolumeReclaimPolicy: Retain
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: graphs-pvc
+  namespace: ml
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: graphs-pv
+  # ensure we don't pick a default StorageClass
+  storageClassName: ""

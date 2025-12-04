@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: telemetry-collector
+  namespace: monitoring
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: telemetry-reader
+  namespace: monitoring
+rules:
+  - apiGroups: [""]
+    resources: ["pods","nodes","namespaces"]
+    verbs: ["get","list","watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: telemetry-reader-binding
+  namespace: monitoring
+subjects:
+  - kind: ServiceAccount
+    name: telemetry-collector
+    namespace: monitoring
+roleRef:
+  kind: Role
+  name: telemetry-reader
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: containment-operator
+  namespace: quarantine
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: containment-operator-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods","namespaces","networkpolicies"]
+    verbs: ["get","list","watch","patch","update","create"]
+  - apiGroups: ["apps"]
+    resources: ["deployments","replicasets"]
+    verbs: ["get","list","patch","update"]
+  - apiGroups: ["security.k8s.io"] 
+    resources: ["podsecuritypolicies"]
+    verbs: ["use"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: containment-operator-binding
+subjects:
+  - kind: ServiceAccount
+    name: containment-operator
+    namespace: quarantine
+roleRef:
+  kind: ClusterRole
+  name: containment-operator-role
+  apiGroup: rbac.authorization.k8s.io

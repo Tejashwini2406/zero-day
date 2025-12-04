@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redpanda
+  namespace: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redpanda
+  template:
+    metadata:
+      labels:
+        app: redpanda
+    spec:
+      containers:
+      - name: redpanda
+        image: vectorized/redpanda:latest
+        args:
+          - start
+          - --overprovisioned
+          - --smp
+          - "1"
+          - --memory
+          - 1G
+          - --reserve-memory
+          - 0M
+          - --node-id
+          - "0"
+        ports:
+          - containerPort: 9092
+            name: kafka
+        livenessProbe:
+          tcpSocket:
+            port: 9092
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redpanda
+  namespace: kafka
+spec:
+  selector:
+    app: redpanda
+  ports:
+    - name: kafka
+      port: 9092
+      targetPort: 9092
+  type: ClusterIP

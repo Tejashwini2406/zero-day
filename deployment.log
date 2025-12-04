@@ -1,0 +1,21 @@
+╔════════════════════════════════════════════════════════════════╗
+║  Zero-Day Detection & Mitigation Framework                    ║
+║  Complete Test & Deployment Workflow                          ║
+╚════════════════════════════════════════════════════════════════╝
+
+📊 SYSTEM RESOURCES
+   Available Memory: 3723MB
+   Minikube Config: 3072MB RAM, 2 CPUs
+
+════════════════════════════════════════════════════════════════
+STEP 1: Initialize Kubernetes Cluster (Minikube)
+════════════════════════════════════════════════════════════════
+🚀 Starting Minikube...
+* minikube v1.37.0 on Ubuntu 24.04 (kvm/amd64)
+* Using the docker driver based on user configuration
+* Using Docker driver with root privileges
+! For an improved experience it's recommended to use Docker Engine instead of Docker Desktop.
+Docker Engine installation instructions: https://docs.docker.com/engine/install/#server
+* Starting "minikube" primary control-plane node in "minikube" cluster
+* Pulling base image v0.0.48 ...
+* Downloading Kubernetes v1.28.0 preload ...

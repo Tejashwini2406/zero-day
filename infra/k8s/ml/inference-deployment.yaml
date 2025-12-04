@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-service
+  namespace: ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inference
+  template:
+    metadata:
+      labels:
+        app: inference
+    spec:
+      serviceAccountName: inference
+      containers:
+        - name: inference
+          image: inference:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KUBECONFIG
+              value: "/etc/kubeconfig"
+          volumeMounts:
+            - name: models
+              mountPath: /models
+            - name: kubeconfig
+              mountPath: /etc/kubeconfig
+              subPath: config
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+      volumes:
+        - name: models
+          emptyDir: {}
+        - name: kubeconfig
+          configMap:
+            name: kubeconfig
+            optional: true
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inference
+  namespace: ml
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: inference

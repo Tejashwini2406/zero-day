@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inference-scripts
+  namespace: ml
+data:
+  inference.py: |
+    # simple watcher that looks for new window files and emits a synthetic alert
+    import os
+    import time
+    import json
+    import random
+
+    WATCH_DIR = '/data/graphs'
+    PROCESSED = '/data/processed'
+    os.makedirs(PROCESSED, exist_ok=True)
+
+    seen = set()
+
+    def emit_alert(window_file):
+        alert = {
+            'time': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+            'window': window_file,
+            'score': random.random(),
+            'action': 'quarantine' if random.random() > 0.8 else 'monitor'
+        }
+        print('ALERT:', json.dumps(alert))
+        # write a file for demo visibility
+        with open(os.path.join(PROCESSED, os.path.basename(window_file) + '.alert.json'), 'w') as f:
+            json.dump(alert, f)
+
+    print('Inference watcher starting, watching', WATCH_DIR)
+    while True:
+        try:
+            files = sorted([os.path.join(WATCH_DIR, f) for f in os.listdir(WATCH_DIR)])
+        except FileNotFoundError:
+            files = []
+        for f in files:
+            if f.endswith('.nodes.parquet') or f.endswith('.edges.parquet'):
+                if f not in seen:
+                    seen.add(f)
+                    emit_alert(f)
+        time.sleep(5)

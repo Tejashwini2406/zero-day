@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: monitoring
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+
+    exporters:
+      logging:
+        loglevel: info
+
+    processors:
+      batch: {}
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging]

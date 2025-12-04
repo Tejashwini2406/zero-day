@@ -1,0 +1,7 @@
+kafka-python
+networkx
+numpy
+pandas
+pyarrow
+fastparquet
+python-dateutil

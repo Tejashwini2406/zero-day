@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zero-day-ui
+  namespace: ml
+  labels:
+    app: zero-day-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zero-day-ui
+  template:
+    metadata:
+      labels:
+        app: zero-day-ui
+    spec:
+      serviceAccountName: ui-service-account
+      containers:
+      - name: ui
+        image: zero-day-ui:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: INFERENCE_URL
+          value: "http://inference-service.ml.svc.cluster.local:8080"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5

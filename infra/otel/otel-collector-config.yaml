@@ -1,0 +1,26 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+exporters:
+  logging:
+    loglevel: info
+  otlp/kafka:
+    endpoint: "kafka:9092"
+    # This is a placeholder; production requires a Kafka exporter or using OTel Collector Kafka exporter plugin
+
+processors:
+  batch:
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging]

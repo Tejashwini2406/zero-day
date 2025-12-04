@@ -1,0 +1,14 @@
+torch>=2.0.0
+torch-geometric
+torch-scatter
+torch-sparse
+torchvision
+numpy
+pandas
+scikit-learn
+tqdm
+pyarrow
+shap
+flask
+kubernetes
+skorch

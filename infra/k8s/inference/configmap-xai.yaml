@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inference-xai-script
+  namespace: ml
+data:
+  xai_worker.py: |
+    #!/usr/bin/env python3
+    import time, json, os, glob
+    from pathlib import Path
+    import pandas as pd
+
+    WATCH_DIR = '/data/graphs'
+    OUT_DIR = '/data/processed'
+    seen = set()
+
+    def explain(parquet_path, out_path):
+        df = pd.read_parquet(parquet_path)
+        num = df.select_dtypes(include=['number'])
+        if num.shape[1]==0:
+            payload = {'file': os.path.basename(parquet_path), 'top_features': {}}
+        else:
+            z = (num - num.mean()) / (num.std(ddof=0)+1e-9)
+            contrib = z.abs().mean().sort_values(ascending=False).to_dict()
+            payload = {'file': os.path.basename(parquet_path), 'top_features': contrib}
+        with open(out_path,'w') as f:
+            json.dump(payload, f, indent=2)
+
+    while True:
+        try:
+            files = sorted(glob.glob(WATCH_DIR + '/*.nodes.parquet'))
+            for p in files:
+                if p in seen: continue
+                seen.add(p)
+                out = os.path.join(OUT_DIR, Path(p).stem + '.xai.json')
+                try:
+                    explain(p, out)
+                    print('Wrote XAI:', out)
+                except Exception as e:
+                    print('XAI error', e)
+        except Exception as e:
+            print('Watcher error', e)
+        time.sleep(5)

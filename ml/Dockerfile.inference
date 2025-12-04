@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+WORKDIR /app
+## Inference image only needs lightweight runtime deps (Flask + Kubernetes client).
+## Heavy ML deps (torch, torch-geometric) are intentionally omitted from this image.
+COPY ml/requirements.txt ./
+RUN pip install --no-cache-dir flask kubernetes numpy
+COPY ml/src/ ./src/
+ENV PYTHONPATH=/app/src
+ENTRYPOINT ["python", "-m", "ml_pipeline.inference"]

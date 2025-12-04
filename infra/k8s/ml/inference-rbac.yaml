@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: inference
+  namespace: ml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: inference-role
+  namespace: ml
+rules:
+  - apiGroups: ["security.example.com"]
+    resources: ["containments"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods", "namespaces"]
+    verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: inference-binding
+  namespace: ml
+subjects:
+  - kind: ServiceAccount
+    name: inference
+    namespace: ml
+roleRef:
+  kind: Role
+  name: inference-role
+  apiGroup: rbac.authorization.k8s.io

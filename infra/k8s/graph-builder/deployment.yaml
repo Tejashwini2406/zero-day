@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: graph-builder
+  namespace: ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: graph-builder
+  template:
+    metadata:
+      labels:
+        app: graph-builder
+    spec:
+      serviceAccountName: graph-builder
+      containers:
+        - name: graph-builder
+          image: graph-builder:v7
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "graph_builder.main"]
+          args: ["kafka", "--topic", "security-events", "--servers", "my-cluster-kafka-bootstrap.kafka.svc:9092", "--out-dir", "/data/graphs", "--window-size", "60", "--step", "30"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+        # initContainers section removed as it is unnecessary for Kafka-mode operation
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: graphs-pvc
