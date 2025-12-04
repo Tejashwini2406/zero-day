@@ -1,3 +1,85 @@
+
+# Zero-Day PoC (Zero-Day Detection Prototype)
+
+This repository contains a proof-of-concept zero-day detection pipeline, monitoring stack, dashboards, and report artifacts used for the final deliverable.
+
+**Contents**
+- `infra/` : Kubernetes manifests for the cluster (monitoring, exporter, Grafana, Prometheus, etc.).
+- `scripts/` : Helper and demo scripts for running the PoC and capturing artifacts.
+- `report/` : Generated DOCX/JSON and markdown reports and dashboard JSON.
+- `paper/` : IEEE-format paper source (LaTeX) and build instructions.
+
+## Prerequisites
+- `kubectl` configured for your Minikube/cluster
+- `docker` (for building images locally, if needed)
+- `pandoc` (optional, for converting markdown -> DOCX)
+- `pdflatex` or `latexmk` (optional, to compile the IEEE paper)
+- `jq`, `curl` (used in scripts)
+
+## Quick Deploy
+1. Apply infrastructure and monitoring manifests:
+
+```bash
+kubectl apply -f infra/k8s/monitoring/prometheus-config.yaml
+kubectl apply -f infra/k8s/monitoring/alert-exporter.yaml
+kubectl apply -f infra/k8s/monitoring/grafana-deploy.yaml
+# other infra manifests (graph-builder, inference, etc.)
+kubectl apply -f infra/k8s
+```
+
+2. Build images (if you want to rebuild locally):
+
+```bash
+# Example (from repo root):
+docker build -t alert-exporter:local -f infra/monitoring/alert_exporter/Dockerfile infra/monitoring/alert_exporter
+```
+
+3. Start demo pipeline (file-mode PoC):
+
+```bash
+bash scripts/demo_full.sh
+```
+
+## How to verify monitoring and dashboards (show)
+1. Port-forward Prometheus and Grafana locally:
+
+```bash
+kubectl -n ml port-forward svc/prometheus 9090:9090 >/dev/null 2>&1 &
+kubectl -n ml port-forward svc/grafana 3000:3000 >/dev/null 2>&1 &
+kubectl -n ml port-forward svc/alert-exporter 8000:8000 >/dev/null 2>&1 &
+```
+
+2. Query the exporter directly:
+
+```bash
+curl -s http://127.0.0.1:8000/metrics | egrep 'zd_windows_count|zd_alerts_count'
+```
+
+3. Query Prometheus for the metric:
+
+```bash
+curl -s 'http://127.0.0.1:9090/api/v1/query?query=zd_windows_count' | jq
+```
+
+4. Open Grafana: `http://127.0.0.1:3000` (default `admin:admin123`).
+   Dashboard UID: `zerodaymetrics`.
+
+## Capture screenshots and export
+Use the helper script to capture Grafana dashboard panels and convert markdown reports to DOCX (requires `pandoc`):
+
+```bash
+chmod +x scripts/capture_grafana.sh scripts/generate_docx.sh
+scripts/capture_grafana.sh      # captures panels into report/*.png
+scripts/generate_docx.sh report/4_MONITORING.md "report/4. MONITORING.docx"
+```
+
+## Paper (IEEE)
+The LaTeX source for the IEEE-format paper is in `paper/zero_day_ieee.tex`. See `paper/README.md` to build a PDF.
+
+## Reproduce & Handoff
+- See `REPRODUCE.md` and `JURY_GUIDE.md` in `report/` for step-by-step reproduction and judging notes.
+
+If you want, I can: (a) run the capture script and embed the screenshot into the monitoring report, (b) compile the LaTeX paper to PDF. Tell me which you'd like me to run now.
 # Zero-Day Detection & Mitigation Framework for Kubernetes (PoC)
 
 A production-oriented proof-of-concept for detecting and mitigating zero-day attacks in Kubernetes clusters using temporal graph neural networks, anomaly detection, and safe automated containment.

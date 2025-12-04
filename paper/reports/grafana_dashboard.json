@@ -1,0 +1,76 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "id": 2,
+      "options": {"legend": {"calcs": [], "displayMode": "list"}, "tooltip": {"mode": "single"}},
+      "pluginVersion": "9.4.10",
+      "targets": [
+        {"expr": "zd_windows_count", "interval": "", "legendFormat": "{{job}}", "refId": "A"}
+      ],
+      "title": "Windows Count",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "id": 3,
+      "options": {"legend": {"calcs": [], "displayMode": "list"}, "tooltip": {"mode": "single"}},
+      "pluginVersion": "9.4.10",
+      "targets": [
+        {"expr": "zd_alerts_count", "interval": "", "legendFormat": "{{job}}", "refId": "A"}
+      ],
+      "title": "Alerts Count",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 37,
+  "style": "dark",
+  "tags": ["zerodaypoć"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "ZeroDay PoC Metrics",
+  "uid": "zerodaymetrics",
+  "version": 1
+}
+{
+  "title": "Zero-Day PoC Overview",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Alert files",
+      "targets": [
+        {"expr": "zero_day_alerts_total", "legendFormat": "alerts"}
+      ],
+      "id": 1
+    },
+    {
+      "type": "stat",
+      "title": "Windows generated",
+      "targets": [
+        {"expr": "zero_day_windows_total", "legendFormat": "windows"}
+      ],
+      "id": 2
+    },
+    {
+      "type": "graph",
+      "title": "Latest window timestamp",
+      "targets": [
+        {"expr": "zero_day_latest_window_ts", "legendFormat": "ts"}
+      ],
+      "id": 3
+    }
+  ]
+}

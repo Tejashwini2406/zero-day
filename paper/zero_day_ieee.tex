@@ -1,0 +1,58 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{booktabs}
+
+\title{Zero-Day Detection Proof-of-Concept: A Pipeline, Monitoring, and Evaluation}
+
+\author{\IEEEauthorblockN{Author Name}
+\IEEEauthorblockA{Organization / University\\
+Email: example@example.com}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present a end-to-end proof-of-concept (PoC) for detecting zero-day events using a window-based graph builder, inference modules, and an explainable AI (XAI) component. The PoC integrates a lightweight monitoring stack (Prometheus + Grafana) and a custom Prometheus exporter that exposes counts of processed windows and alerts. This paper describes the system architecture, monitoring approach, experimental results from the PoC, and lessons learned for deployment and evaluation.
+\end{abstract}
+
+\begin{IEEEkeywords}
+zero-day detection, monitoring, Prometheus, Grafana, explainable AI, PoC
+\end{IEEEkeywords}
+
+\section{Introduction}
+Zero-day vulnerabilities present unique challenges due to lack of prior signatures. We built a PoC pipeline that processes streaming or file-mode events into windowed graph representations, runs inference to detect anomalous windows, and produces XAI output to explain alerts. The PoC is designed to be reproducible in a Minikube environment and to demonstrate observability using Prometheus and Grafana.
+
+\section{System Architecture}
+The pipeline consists of several components: a graph-builder which generates windowed graph artifacts, an inference-watcher which runs detection models and writes alerts/XAI outputs, a Prometheus exporter that counts windows and alerts on shared storage, Prometheus for collection, and Grafana for dashboarding. All components run as Kubernetes workloads in the `ml` namespace.
+
+\section{Monitoring and Observability}
+We instrumented the system with a custom Python Prometheus exporter that inspects shared persistent volumes for produced window files and processed alert outputs. The exporter exposes two gauges: `zd_windows_count` and `zd_alerts_count`. Prometheus scrapes the exporter at a 10s interval and Grafana dashboards visualize the time series.
+
+\section{Experimental Setup}
+The PoC was executed in Minikube. The graph-builder produced ~120 windows in the test run and the exporter reported corresponding counts (e.g., `zd_windows_count=120`, `zd_alerts_count=121`). We validated connectivity by port-forwarding the exporter, Prometheus, and Grafana services locally.
+
+\section{Results}
+Prometheus successfully ingested metrics from the exporter after resolving a configuration duplication issue in the Prometheus ConfigMap (an outdated target port). Grafana dashboards were configured with two panels showing Windows Count and Alerts Count. Once the Prometheus TSDB held samples, the charts displayed live data.
+
+\section{Discussion and Lessons Learned}
+- Ensure a single authoritative Prometheus ConfigMap (avoid duplicate definitions).
+- Use short scrape intervals for rapid feedback during demos (10s used here).
+- Expose minimal, focused exporter metrics for simple observability during PoCs.
+
+\section{Conclusion}
+We demonstrated an end-to-end zero-day detection PoC with monitoring and dashboarding, making it reproducible and demonstrable. Future work includes adding alerting rules, automated reproducers for detected windows, and continuous evaluation against synthetic threat feeds.
+
+\section*{Acknowledgments}
+This PoC was developed as part of an engineering demonstration.
+
+\bibliographystyle{IEEEtran}
+\begin{thebibliography}{1}
+\bibitem{prometheus} J. Turnbull, "Prometheus: Monitoring at scale", 2015.
+\bibitem{grafana} Grafana Labs, "Grafana Documentation".
+\end{thebibliography}
+
+\end{document}

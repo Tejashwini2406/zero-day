@@ -7,10 +7,15 @@ data:
   prometheus.yml: |
     global:
       scrape_interval: 10s
+      scrape_timeout: 5s
     scrape_configs:
       - job_name: 'alert-exporter'
         static_configs:
           - targets: ['alert-exporter.ml.svc.cluster.local:8000']
+        relabel_configs:
+          - action: replace
+            target_label: instance
+            replacement: 'alert-exporter'
 
 ---
 apiVersion: apps/v1
@@ -55,16 +60,3 @@ spec:
   ports:
     - port: 9090
       targetPort: 9090
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus-config
-  namespace: ml
-data:
-  prometheus.yml: |
-    global:
-      scrape_interval: 10s
-    scrape_configs:
-      - job_name: 'kubernetes'
-        static_configs:
-          - targets: ['alert-exporter.ml.svc.cluster.local:9417']
