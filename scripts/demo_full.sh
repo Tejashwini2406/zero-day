@@ -16,7 +16,7 @@ if [[ ! -x "$PYTHON_EXEC" ]]; then
 fi
 
 echo "1/6: Generating synthetic attack events"
-${PYTHON_EXEC} scripts/generate_attack.py --out /tmp/attack_events.jsonl --count 400 --attack-start 120 --attack-burst 80
+${PYTHON_EXEC} scripts/generate_attack.py --out /tmp/attack_events.jsonl --count 800 --attack-start 120 --attack-burst 160 --benign-ratio 0.8
 
 echo "2/6: Locating graph-builder and inference pods (namespace=ml)"
 GB_POD=$(kubectl -n ml get pods -o name | grep graph-builder | head -n1 | cut -d/ -f2 || true)

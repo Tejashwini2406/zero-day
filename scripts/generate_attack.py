@@ -15,11 +15,12 @@ def gen_event(t, pod_name, namespace, dst_ip, bytes_val, syscall_count):
         "syscall_count": syscall_count,
     }
 
-def generate(path, count=200, attack_start=120, attack_burst=50):
+def generate(path, count=200, attack_start=120, attack_burst=50, benign_ratio=0.8):
     start = datetime.utcnow() - timedelta(seconds=count)
     events = []
     # baseline traffic
-    for i in range(count):
+    benign_count = int(count * benign_ratio)
+    for i in range(benign_count):
         t = start + timedelta(seconds=i)
         pod = f"app-{random.randint(1,8)}"
         dst = f"10.{random.randint(0,3)}.{random.randint(0,255)}.{random.randint(1,254)}"
@@ -28,7 +29,8 @@ def generate(path, count=200, attack_start=120, attack_burst=50):
     # inject attack: burst of execs/large bytes from one pod
     attack_time = start + timedelta(seconds=attack_start)
     attacker = "compromised-pod"
-    for i in range(attack_burst):
+    attack_count = count - benign_count
+    for i in range(attack_count):
         t = attack_time + timedelta(milliseconds=i*50)
         events.append(gen_event(t, attacker, "prod", "203.0.113.45", random.randint(4000,20000), random.randint(50,300)))
 
@@ -45,5 +47,6 @@ if __name__ == '__main__':
     p.add_argument("--count", type=int, default=400)
     p.add_argument("--attack-start", type=int, default=120)
     p.add_argument("--attack-burst", type=int, default=60)
+    p.add_argument("--benign-ratio", type=float, default=0.8, help="Fraction of events that are benign (0-1)")
     args = p.parse_args()
-    generate(args.out, args.count, args.attack_start, args.attack_burst)
+    generate(args.out, args.count, args.attack_start, args.attack_burst, args.benign_ratio)

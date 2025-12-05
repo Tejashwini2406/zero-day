@@ -2,122 +2,122 @@
   "window": "latest_nodes.parquet",
   "top_nodes": [
     {
-      "node": "app-2",
-      "score": 12125.25,
-      "features": {
-        "bytes": {
-          "value": 19552.0,
-          "baseline_mean": 7441.75,
-          "abs_dev": 12110.25,
-          "pct": 0.9987629121049051
-        },
-        "outgoing_unique_dst_count": {
-          "value": 15.0,
-          "baseline_mean": 7.5,
-          "abs_dev": 7.5,
-          "pct": 0.0006185439475474733
-        },
-        "flow_count": {
-          "value": 15.0,
-          "baseline_mean": 7.5,
-          "abs_dev": 7.5,
-          "pct": 0.0006185439475474733
-        }
-      }
-    },
-    {
-      "node": "app-1",
-      "score": 2937.75,
-      "features": {
-        "bytes": {
-          "value": 4509.0,
-          "baseline_mean": 7441.75,
-          "abs_dev": 2932.75,
-          "pct": 0.9982980171900264
-        },
-        "outgoing_unique_dst_count": {
-          "value": 5.0,
-          "baseline_mean": 7.5,
-          "abs_dev": 2.5,
-          "pct": 0.0008509914049868097
-        },
-        "flow_count": {
-          "value": 5.0,
-          "baseline_mean": 7.5,
-          "abs_dev": 2.5,
-          "pct": 0.0008509914049868097
-        }
-      }
-    },
-    {
-      "node": "app-8",
-      "score": 2728.75,
-      "features": {
-        "bytes": {
-          "value": 4714.0,
-          "baseline_mean": 7441.75,
-          "abs_dev": 2727.75,
-          "pct": 0.9996335318369217
-        },
-        "outgoing_unique_dst_count": {
-          "value": 7.0,
-          "baseline_mean": 7.5,
-          "abs_dev": 0.5,
-          "pct": 0.0001832340815391663
-        },
-        "flow_count": {
-          "value": 7.0,
-          "baseline_mean": 7.5,
-          "abs_dev": 0.5,
-          "pct": 0.0001832340815391663
-        }
-      }
-    },
-    {
       "node": "app-4",
-      "score": 2449.75,
+      "score": 4990.375,
       "features": {
         "bytes": {
-          "value": 4995.0,
-          "baseline_mean": 7441.75,
-          "abs_dev": 2446.75,
-          "pct": 0.9987753852433922
+          "value": 12471.0,
+          "baseline_mean": 7487.625,
+          "abs_dev": 4983.375,
+          "pct": 0.9985972998021191
         },
         "outgoing_unique_dst_count": {
-          "value": 6.0,
+          "value": 11.0,
           "baseline_mean": 7.5,
-          "abs_dev": 1.5,
-          "pct": 0.0006123073783039086
+          "abs_dev": 3.5,
+          "pct": 0.0007013500989404604
         },
         "flow_count": {
-          "value": 6.0,
+          "value": 11.0,
           "baseline_mean": 7.5,
-          "abs_dev": 1.5,
-          "pct": 0.0006123073783039086
+          "abs_dev": 3.5,
+          "pct": 0.0007013500989404604
         }
       }
     },
     {
       "node": "app-3",
-      "score": 2382.75,
+      "score": 4730.625,
       "features": {
         "bytes": {
-          "value": 5064.0,
-          "baseline_mean": 7441.75,
-          "abs_dev": 2377.75,
-          "pct": 0.9979015843038506
+          "value": 2766.0,
+          "baseline_mean": 7487.625,
+          "abs_dev": 4721.625,
+          "pct": 0.9980975029726517
         },
         "outgoing_unique_dst_count": {
-          "value": 5.0,
+          "value": 3.0,
           "baseline_mean": 7.5,
-          "abs_dev": 2.5,
-          "pct": 0.0010492078480747037
+          "abs_dev": 4.5,
+          "pct": 0.0009512485136741974
         },
         "flow_count": {
-          "value": 5.0,
+          "value": 3.0,
           "baseline_mean": 7.5,
-          "abs_dev": 2.5,
-          "pct": 0.0010492078480747037
+          "abs_dev": 4.5,
+          "pct": 0.0009512485136741974
+        }
+      }
+    },
+    {
+      "node": "app-7",
+      "score": 4003.375,
+      "features": {
+        "bytes": {
+          "value": 11482.0,
+          "baseline_mean": 7487.625,
+          "abs_dev": 3994.375,
+          "pct": 0.9977518968370438
+        },
+        "outgoing_unique_dst_count": {
+          "value": 12.0,
+          "baseline_mean": 7.5,
+          "abs_dev": 4.5,
+          "pct": 0.0011240515814781278
+        },
+        "flow_count": {
+          "value": 12.0,
+          "baseline_mean": 7.5,
+          "abs_dev": 4.5,
+          "pct": 0.0011240515814781278
+        }
+      }
+    },
+    {
+      "node": "app-5",
+      "score": 3247.625,
+      "features": {
+        "bytes": {
+          "value": 4243.0,
+          "baseline_mean": 7487.625,
+          "abs_dev": 3244.625,
+          "pct": 0.9990762480274047
+        },
+        "outgoing_unique_dst_count": {
+          "value": 6.0,
+          "baseline_mean": 7.5,
+          "abs_dev": 1.5,
+          "pct": 0.0004618759862976791
+        },
+        "flow_count": {
+          "value": 6.0,
+          "baseline_mean": 7.5,
+          "abs_dev": 1.5,
+          "pct": 0.0004618759862976791
+        }
+      }
+    },
+    {
+      "node": "app-2",
+      "score": 2407.625,
+      "features": {
+        "bytes": {
+          "value": 5087.0,
+          "baseline_mean": 7487.625,
+          "abs_dev": 2400.625,
+          "pct": 0.9970925704792067
+        },
+        "outgoing_unique_dst_count": {
+          "value": 4.0,
+          "baseline_mean": 7.5,
+          "abs_dev": 3.5,
+          "pct": 0.0014537147603966565
+        },
+        "flow_count": {
+          "value": 4.0,
+          "baseline_mean": 7.5,
+          "abs_dev": 3.5,
+          "pct": 0.0014537147603966565
         }
       }
     }

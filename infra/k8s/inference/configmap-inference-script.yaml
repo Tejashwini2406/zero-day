@@ -24,10 +24,12 @@ data:
             'score': random.random(),
             'action': 'quarantine' if random.random() > 0.8 else 'monitor'
         }
-        print('ALERT:', json.dumps(alert))
-        # write a file for demo visibility
-        with open(os.path.join(PROCESSED, os.path.basename(window_file) + '.alert.json'), 'w') as f:
-            json.dump(alert, f)
+        # Only emit alert if score is high (anomalous) - strict threshold
+        if alert['score'] > 0.85:
+            print('ALERT:', json.dumps(alert))
+            # write a file for demo visibility
+            with open(os.path.join(PROCESSED, os.path.basename(window_file) + '.alert.json'), 'w') as f:
+                json.dump(alert, f)
 
     print('Inference watcher starting, watching', WATCH_DIR)
     while True:
