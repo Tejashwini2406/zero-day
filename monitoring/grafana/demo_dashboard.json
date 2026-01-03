@@ -165,13 +165,13 @@
         "pluginVersion": "8.0.0",
         "targets": [
           {
-            "expr": "increase(zero_day_attack_alerts_total[5m])",
+            "expr": "zero_day_attack_alerts_total",
             "instant": true,
             "legendFormat": "alerts",
             "refId": "A"
           }
         ],
-        "title": "🚨 Active Alerts (Green 0 | Yellow 50-200 | Red >200)",
+        "title": "🚨 Total Alerts (Green <50 | Yellow 50-200 | Red >200)",
         "type": "stat"
       },
       {
@@ -202,7 +202,7 @@
                 }
               ]
             },
-            "unit": "percent"
+            "unit": "short"
           },
           "overrides": []
         },
