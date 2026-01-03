@@ -245,7 +245,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "mode": "gradient"
+              "mode": "thresholds"
             },
             "custom": {
               "axisLabel": "events/sec",
@@ -253,7 +253,7 @@
               "barAlignment": 0,
               "drawStyle": "line",
               "fillOpacity": 20,
-              "gradientMode": "gradient",
+              "gradientMode": "scheme",
               "hideFrom": {
                 "tooltip": false,
                 "viz": false,
@@ -331,7 +331,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "mode": "gradient"
+              "mode": "thresholds"
             },
             "custom": {
               "axisLabel": "alerts",
@@ -339,7 +339,7 @@
               "barAlignment": 0,
               "drawStyle": "bars",
               "fillOpacity": 30,
-              "gradientMode": "gradient",
+              "gradientMode": "scheme",
               "hideFrom": {
                 "tooltip": false,
                 "viz": false,
@@ -417,7 +417,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "mode": "gradient"
+              "mode": "thresholds"
             },
             "custom": {
               "axisLabel": "score",
@@ -425,7 +425,7 @@
               "barAlignment": 0,
               "drawStyle": "line",
               "fillOpacity": 20,
-              "gradientMode": "gradient",
+              "gradientMode": "scheme",
               "hideFrom": {
                 "tooltip": false,
                 "viz": false,
