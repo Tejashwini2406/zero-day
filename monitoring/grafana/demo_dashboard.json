@@ -100,7 +100,7 @@
         "targets": [
           {
             "expr": "rate(zero_day_events_total[1m])",
-            "instant": true,
+            "instant": false,
             "legendFormat": "events/sec",
             "refId": "A"
           }
@@ -166,7 +166,7 @@
         "targets": [
           {
             "expr": "zero_day_attack_alerts_total",
-            "instant": true,
+            "instant": false,
             "legendFormat": "alerts",
             "refId": "A"
           }
@@ -232,7 +232,7 @@
         "targets": [
           {
             "expr": "zero_day_attack_score",
-            "instant": true,
+            "instant": false,
             "legendFormat": "score",
             "refId": "A"
           }
