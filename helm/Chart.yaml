@@ -1,0 +1,31 @@
+apiVersion: v2
+name: zero-day-saas
+description: Zero-Day Detection Framework - Production SaaS Chart
+type: application
+version: 1.0.0
+appVersion: "v7"
+keywords:
+  - security
+  - anomaly-detection
+  - graph-based
+  - kubernetes
+  - saas
+maintainers:
+  - name: Zero-Day Team
+    email: team@zero-day.io
+home: https://github.com/zero-day/zero-day
+sources:
+  - https://github.com/zero-day/zero-day
+dependencies:
+  - name: kafka
+    version: "4.0.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: kafka.enabled
+  - name: prometheus
+    version: "25.0.0"
+    repository: "https://prometheus-community.github.io/helm-charts"
+    condition: prometheus.enabled
+  - name: grafana
+    version: "7.0.0"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: grafana.enabled

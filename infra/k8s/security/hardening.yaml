@@ -1,0 +1,185 @@
+---
+# Security Hardening for Zero-Day SaaS
+# - TLS/mTLS for inter-service communication
+# - API authentication via JWT
+# - Secret management setup
+# - Audit logging
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-auth-config
+  namespace: ml
+data:
+  jwt-secret-key: "CHANGE_ME_IN_PRODUCTION"
+  jwt-algorithm: "HS256"
+  jwt-expiration: "3600"
+  jwt-issuer: "zero-day-saas"
+  jwt-audience: "zero-day-api"
+---
+# Create signed certificate for inter-service TLS
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tls-inter-service
+  namespace: ml
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUUwakNDQXdvQ0NRQ1ZVRHJtTFUyNWZEQU5CZ2txaGtpRzl3MEJBUXNGQURCRE1Rc3dDUVlEVlFRR0V3SlYKVXpFak1DRUdBMVVFQ0JNYVEybHNlWE5wYjI1cGJtNWxJRTFoYkhSbGNtNGdUR1YzSURReE9EZzBNQ3hGVkRCVQpNQjRYRFRFNU1qRTBPVEUyTXpnd01Gb1hEVEU1TVRReE9URTJNemcxTUZvd1ZERUxNQWtHQTFVRUJoTUNWVk14CkZ6QVZCZ05WQkFnVERtTm5iVzl1Y201dVpXTjBjbTl2TWpJeElUQWZCZ05WQkFNVEdHRndhUzEwWlhOMGRYSmwKSUZOMGIzSmxMVlJ5ZVhNd2dnSWlNQTBHQ1NxR1NNNDNCQURFRkFBT0NBZ1FBSmozVUZJUjBGQi82dzZMWVo3cApFalpXZWJlK1F3ZW1UU1pvTXhBSjdXOHlOZDEyZ2tJM24rNkcvTlhzRHAvME5FMjBMSDJlMXp4NnFiOEh5SmI1CmxSZ3pSTWtaMzJZc0puSkRod25udVAxTGJGRFhheG5UVVJXNFlEMmVkdmI5clpURjd6bEJLMjFHaWlKTVorQUsKRjVaRVN1aFF0bWEvRW0rV1dqbFF2THdkL0JJVWRmVUFGeGRXSllOVWExQ0tobjVsRUJSSWxkdkR0UWJDRVhJRApSSjR4UkJVTzdLQklrREFxcStXV0lPbVcvUy96NU9xTXVZODVDakJoWWV6RENHTUhkdTIrVEpGSWJzbC9CRjJ4ClQ5Y1J3TkRSMmRrRXdOSHVJY3VhUGlRd3VzTSswVmR5dDdSbGRWTnJFMlBrcDNpazVCUHR0RFdFWjFqSDlUWmgKbEVMbG1VRmpocEpLeStWeEZPaWJBMVZ0MHhDZFNITW10TjdWQnhyTlVJQ1pXeDJhRkJJMmpQMVpTcENxRDdSeApMRWQ5eWFsSDVpY0hhQkhJT3N3MUdzdFZSMkdtQ3F1UmZHZUVhRXhMVWt2RUZGRUY1WlBXRVd3RnVmZ01YbVQrCnBZVVdnMjgzS0h4STUybzRpQXRVaWlIZVNrZEhLREprTHRpT25xbnZsRzBORUJJVGo5b0VHdDNJMjhGQjRoRU8KbC9BSkRabzBkcz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUpSQklCQkFLQ0FnRUEyZ0loUXJDaWMrRVJ6V2ZuTDhUSzBWbm0zL0JPNlpOSm1neEVBbnRieklWM1hhQ1EKamVmN29iODFlNFBuL1EwVGJRc2ZaN1hQSHFwdkFmSWx2bVZHRE5FeVJuZlppaWVja09FR1Q0L1V0c1VOY3EzdQo1YlpURjd6bEJLMjFHaWlKTVorQUtGNVpFU3VoUXRtYS9FbStXV2psUXZMd2QvQklVZGZVQUZ4ZFdKWU5VYTEKQ0tobjVsRUJSSWxkdkR0UWJDRVhJRFJKNHhSQlVPN0tCSWtEQXFxK1dXSU9tVy9TL3o1T3FNdVk4NUNqQmgKWWV6RENHTUhkdTIrVEpGSWJzbC9CRjJ4VDljUndORFIyZGtFd05IdUljdWFQaVF3dXNNKzBWZHl0N1JsZFZOCnJFMlBrcDNpazVCUHR0RFdFWjFqSDlUWmhsRUxsbVVGamhwSkt5K1Z4Rk9pYkExVnQweENkU0hNbXRON1ZCeHIKTlVJQ1pXeDJhRkJJMmpQMVpTcENxRDdSeExFZDl5YWxINWljSGFCSElPc3cxR3N0VlIyR21DcXVSZkdlRWFFdgpMVWt2RUZGRUY1WlBXRVd3RnVmZ01YbVQrcFlVV2cyODNLSHhJNTJvNGlBdFVpaUhlU2tkSEtESmsGdGlPbnEKbnZsRzBORUJJVGo5b0VHdDNJMjhGQjRoRU9sL0FKRFpvMGRzPQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==
+---
+# ServiceAccount for API Server
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: zero-day-api
+  namespace: ml
+---
+# ClusterRole for API Server (read-only access to metrics/status)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: zero-day-api-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get", "list", "watch"]
+---
+# ClusterRoleBinding for API Server
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: zero-day-api-reader-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: zero-day-api-reader
+subjects:
+- kind: ServiceAccount
+  name: zero-day-api
+  namespace: ml
+---
+# NetworkPolicy: Strict ingress/egress control
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ml-namespace-default-deny
+  namespace: ml
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# Allow monitoring scrape
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-monitoring
+  namespace: ml
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+---
+# PodSecurityPolicy (or Pod Security Standards in newer K8s)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: restricted-psp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'runtime/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: 'runtime/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName: 'runtime/default'
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+  - ALL
+  volumes:
+  - 'configMap'
+  - 'emptyDir'
+  - 'projected'
+  - 'secret'
+  - 'downwardAPI'
+  - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'MustRunAs'
+    seLinuxOptions:
+      level: "s0:c123,c456"
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: false
+---
+# Audit Policy for compliance
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+# Log pod exec at Metadata level
+- level: Metadata
+  verbs: ["create", "update", "patch", "delete"]
+  resources:
+  - group: ""
+    resources: ["pods/exec"]
+  namespaces: ["ml", "kafka"]
+# Log all requests to ml namespace at Request level
+- level: Request
+  verbs: ["create", "update", "patch", "delete"]
+  resources:
+  - group: ""
+    resources: ["pods", "services"]
+  namespaces: ["ml"]
+  omitStages:
+  - RequestReceived
+# Log RBAC changes
+- level: RequestResponse
+  verbs: ["create", "update", "patch", "delete"]
+  resources:
+  - group: "rbac.authorization.k8s.io"
+    resources: ["clusterroles", "clusterrolebindings", "roles", "rolebindings"]
+# Log authentication failures
+- level: Metadata
+  verbs: ["create", "update"]
+  resources:
+  - group: "authentication.k8s.io"
+    resources: ["tokenreviews"]
+  userGroups: ["system:unauthenticated"]
+# Log all other requests at Metadata level
+- level: Metadata
+  omitStages:
+  - RequestReceived
+---
+# Secret encryption at rest using EncryptionConfiguration
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+- resources:
+  - secrets
+  providers:
+  - aescbc:
+      keys:
+      - name: key1
+        secret: YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=
+  - identity: {}

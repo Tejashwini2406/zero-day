@@ -2,7 +2,6 @@ from flask import Flask, render_template, jsonify, request
 import kubernetes.client as k8s_client
 import kubernetes.config as k8s_config
 import requests
-import pandas as pd
 import os
 from datetime import datetime
 

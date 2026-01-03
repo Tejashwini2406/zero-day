@@ -10,16 +10,23 @@ from kafka import KafkaProducer
 
 def main():
     try:
-        producer = KafkaProducer(
-            bootstrap_servers=['my-cluster-kafka-bootstrap.kafka.svc:9092'],
-            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-            acks='all',
-            retries=3
-        )
-        
-        print("✓ Connected to Kafka broker", file=sys.stderr)
-        
-        event_count = 100
+        import os
+        use_kafka = os.getenv('USE_KAFKA', 'false').lower() in ('1','true','yes')
+        if use_kafka:
+            bootstrap = os.getenv('KAFKA_BOOTSTRAP', 'localhost:9092')
+            producer = KafkaProducer(
+                bootstrap_servers=[bootstrap],
+                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+                acks='all',
+                retries=3
+            )
+            print("✓ Connected to Kafka broker", file=sys.stderr)
+        else:
+            outpath = os.getenv('EVENTS_FILE', '/workspace/events.jsonl')
+            print(f"✓ Writing events to file mode: {outpath}", file=sys.stderr)
+
+        event_count = int(os.getenv('EVENT_COUNT', '100'))
+        written = 0
         for i in range(event_count):
             ts = datetime.utcnow().isoformat() + 'Z'
             event = {
@@ -31,18 +38,27 @@ def main():
                 'syscall_count': random.randint(5, 100),
                 'alert_level': random.choice(['low', 'medium', 'high'])
             }
-            
-            future = producer.send('security-events', value=event)
-            try:
-                future.get(timeout=10)
-                print(f"✓ Event {i+1}/{event_count} sent", file=sys.stderr)
-            except Exception as e:
-                print(f"✗ Failed to send event {i+1}: {e}", file=sys.stderr)
-        
-        producer.flush()
-        producer.close()
-        print(f"✓ Produced {event_count} events to 'security-events' topic", file=sys.stderr)
-        
+
+            if use_kafka:
+                future = producer.send('security-events', value=event)
+                try:
+                    future.get(timeout=10)
+                    print(f"✓ Event {i+1}/{event_count} sent", file=sys.stderr)
+                except Exception as e:
+                    print(f"✗ Failed to send event {i+1}: {e}", file=sys.stderr)
+            else:
+                # append to file
+                with open(outpath, 'a') as f:
+                    f.write(json.dumps(event) + "\n")
+                written += 1
+
+        if use_kafka:
+            producer.flush()
+            producer.close()
+            print(f"✓ Produced {event_count} events to 'security-events' topic", file=sys.stderr)
+        else:
+            print(f"✓ Wrote {written} events to {outpath}", file=sys.stderr)
+
     except Exception as e:
         print(f"✗ Error: {e}", file=sys.stderr)
         sys.exit(1)

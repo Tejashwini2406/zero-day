@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  metrics_exporter:
+    build: ./monitoring/metrics_exporter
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/workspace:ro
+    restart: unless-stopped

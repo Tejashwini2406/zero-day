@@ -1,0 +1,221 @@
+---
+# Multi-Tenancy Infrastructure for Zero-Day SaaS
+# This template creates isolated tenant namespaces with:
+# - Tenant-specific RBAC
+# - Resource quotas per tenant
+# - Network policies for isolation
+# - Persistent storage per tenant
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tenant-{{ TENANT_ID }}
+  labels:
+    tenant-id: "{{ TENANT_ID }}"
+    tenant-name: "{{ TENANT_NAME }}"
+    tier: tenant
+    managed-by: zero-day-saas
+  annotations:
+    tenant.zero-day.io/created-at: "{{ TIMESTAMP }}"
+    tenant.zero-day.io/billing-tier: "{{ BILLING_TIER }}"
+---
+# Resource Quota per tenant
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-quota
+  namespace: tenant-{{ TENANT_ID }}
+spec:
+  hard:
+    pods: "50"
+    requests.cpu: "10"
+    requests.memory: "20Gi"
+    limits.cpu: "20"
+    limits.memory: "40Gi"
+    persistentvolumeclaims: "10"
+    services.nodeports: "0"
+    services.loadbalancers: "0"
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values: ["high", "medium", "low"]
+---
+# Network Policy: Tenant isolation (no cross-tenant traffic)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tenant-isolation
+  namespace: tenant-{{ TENANT_ID }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow from same namespace
+  - from:
+    - podSelector: {}
+  # Allow from shared monitoring namespace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+  # Allow from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+  egress:
+  # Allow to same namespace
+  - to:
+    - podSelector: {}
+  # Allow DNS
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow to kafka namespace (controlled)
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow to monitoring
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+---
+# ServiceAccount for tenant workloads
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tenant-workload
+  namespace: tenant-{{ TENANT_ID }}
+---
+# Role: Limited permissions for tenant workloads
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tenant-workload-role
+  namespace: tenant-{{ TENANT_ID }}
+spec:
+  rules:
+  # Read own pods
+  - apiGroups: [""]
+    resources: ["pods", "pods/logs"]
+    verbs: ["get", "list", "watch"]
+  # Read own services
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list"]
+  # Read own configmaps/secrets (only if labeled with tenant)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+    resourceNames: []
+  # Read own deployments
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+---
+# RoleBinding: Bind role to tenant workload SA
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tenant-workload-binding
+  namespace: tenant-{{ TENANT_ID }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tenant-workload-role
+subjects:
+- kind: ServiceAccount
+  name: tenant-workload
+  namespace: tenant-{{ TENANT_ID }}
+---
+# PersistentVolumeClaim: Tenant's own graph storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tenant-graphs-pvc
+  namespace: tenant-{{ TENANT_ID }}
+  labels:
+    tenant-id: "{{ TENANT_ID }}"
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: "{{ STORAGE_SIZE }}"
+---
+# PersistentVolumeClaim: Tenant's model storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tenant-models-pvc
+  namespace: tenant-{{ TENANT_ID }}
+  labels:
+    tenant-id: "{{ TENANT_ID }}"
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: "5Gi"
+---
+# ConfigMap: Tenant-specific configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tenant-config
+  namespace: tenant-{{ TENANT_ID }}
+  labels:
+    tenant-id: "{{ TENANT_ID }}"
+data:
+  tenant_id: "{{ TENANT_ID }}"
+  tenant_name: "{{ TENANT_NAME }}"
+  kafka_topic: "security-events-{{ TENANT_ID }}"
+  kafka_consumer_group: "inference-{{ TENANT_ID }}"
+  billing_tier: "{{ BILLING_TIER }}"
+  retention_days: "{{ RETENTION_DAYS }}"
+---
+# RoleBinding: Grant cluster-admin permission only to tenant admin (if needed)
+# This should be tightly controlled and audited
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tenant-admin-binding
+  namespace: tenant-{{ TENANT_ID }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+- kind: User
+  name: "{{ TENANT_ADMIN_EMAIL }}"
+  apiGroup: rbac.authorization.k8s.io
+---
+# ResourceQuota for each workload type (optional but recommended)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-per-pod-quota
+  namespace: tenant-{{ TENANT_ID }}
+spec:
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values: ["tenant-high", "tenant-medium", "tenant-low"]
+  hard:
+    requests.cpu: "5"
+    requests.memory: "10Gi"
+    limits.cpu: "10"
+    limits.memory: "20Gi"

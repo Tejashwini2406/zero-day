@@ -1,13 +1,34 @@
-# Ignore Python virtual environments
-venv/
-*/venv/
-
-# Ignore archives and temp
-archive_removed/
-
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+*.egg
 
-# macOS
+# Generated files
+events*.jsonl
+attack_events.jsonl
+archive_cleanup/
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+.env
+.env.local
+
+# Logs
+*.log
+
+# Model artifacts (optional - keep if important)
+# ml_artifacts/
+# models/

@@ -1,0 +1,315 @@
+---
+# Backup and Disaster Recovery Strategy for Zero-Day SaaS
+# Uses Velero for backup/restore
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velero
+---
+# ServiceAccount for Velero
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: velero
+  namespace: velero
+---
+# ClusterRole for Velero backup operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: velero
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  - persistentvolumes
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - get
+  - list
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - statefulsets
+  - daemonsets
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - get
+  - list
+---
+# ClusterRoleBinding for Velero
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velero
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: velero
+subjects:
+- kind: ServiceAccount
+  name: velero
+  namespace: velero
+---
+# Secret for S3 credentials (change to your provider)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: velero-s3-credentials
+  namespace: velero
+type: Opaque
+stringData:
+  cloud: |
+    [default]
+    aws_access_key_id=CHANGE_ME
+    aws_secret_access_key=CHANGE_ME
+---
+# Daily full backup schedule
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-full-backup
+  namespace: velero
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  template:
+    includedNamespaces:
+    - "*"
+    excludedNamespaces:
+    - kube-system
+    - kube-node-lease
+    - kube-public
+    storageLocation: default
+    ttl: 720h  # 30 days
+    hooks: {}
+---
+# Hourly incremental backup schedule
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: hourly-incremental-backup
+  namespace: velero
+spec:
+  schedule: "0 * * * *"  # Every hour
+  template:
+    includedNamespaces:
+    - ml
+    - kafka
+    - monitoring
+    storageLocation: default
+    ttl: 168h  # 7 days
+---
+# Tenant-specific daily backup
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: tenant-daily-backup
+  namespace: velero
+spec:
+  schedule: "30 2 * * *"  # Daily at 2:30 AM
+  template:
+    includedNamespaces:
+    - "tenant-*"
+    storageLocation: default
+    ttl: 2160h  # 90 days for compliance
+---
+# S3 storage location for backups
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: aws
+  objectStorage:
+    bucket: zero-day-backups
+    prefix: velero
+  credential:
+    name: velero-s3-credentials
+    key: cloud
+  config:
+    region: us-east-1
+    s3ForcePathStyle: "true"
+---
+# Volume snapshot location for PVC snapshots
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  name: aws-ebs
+  namespace: velero
+spec:
+  provider: aws
+  config:
+    region: us-east-1
+---
+# Backup retention policy ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-retention-policy
+  namespace: velero
+data:
+  policy: |
+    # Data Retention Policies
+    STANDARD_RETENTION: 30days
+    ENTERPRISE_RETENTION: 90days
+    COMPLIANCE_RETENTION: 365days
+    
+    # Backup Frequency
+    FULL_BACKUP_FREQUENCY: daily
+    INCREMENTAL_BACKUP_FREQUENCY: hourly
+    TENANT_BACKUP_FREQUENCY: daily
+    
+    # Restore Points
+    RESTORE_POINT_RETENTION: 7days
+    CRITICAL_DATA_REPLICAS: 3
+---
+# Disaster Recovery Plan ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: disaster-recovery-plan
+  namespace: velero
+data:
+  recovery-guide.md: |
+    # Disaster Recovery Playbook
+    
+    ## Critical Data Inventory
+    - Graphs PVC: graphs-pvc
+    - Models PVC: models-pvc
+    - Kafka topics: security-events, telemetry.logs
+    - OTEL data: Prometheus, Grafana dashboards
+    
+    ## Recovery Objectives
+    - RTO (Recovery Time Objective): 1 hour
+    - RPO (Recovery Point Objective): 1 hour
+    
+    ## Recovery Procedures
+    
+    ### 1. Total Cluster Failure
+    ```bash
+    # List available backups
+    velero backup get
+    
+    # Restore latest backup
+    velero restore create --from-backup daily-full-backup-<date>
+    
+    # Verify restoration
+    kubectl get pods -A
+    velero restore describe <restore-name>
+    ```
+    
+    ### 2. Namespace Deletion
+    ```bash
+    # Restore specific namespace
+    velero restore create --from-backup <backup-name> \
+      --include-namespaces ml
+    ```
+    
+    ### 3. PVC Data Corruption
+    ```bash
+    # Restore PVC from snapshot
+    velero restore create --from-backup <backup-name> \
+      --include-resources pvc
+    ```
+    
+    ### 4. Tenant Data Loss
+    ```bash
+    # Restore specific tenant namespace
+    velero restore create --from-backup tenant-daily-backup-<date> \
+      --include-namespaces tenant-<tenant-id>
+    ```
+    
+    ## Testing Recovery
+    - Monthly recovery drills mandatory
+    - Use separate test namespace
+    - Verify data integrity post-restore
+    - Document recovery time
+    
+    ## Contact Information
+    - On-call: team@zero-day.io
+    - Escalation: leadership@zero-day.io
+---
+# CronJob for backup validation
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-validation
+  namespace: velero
+spec:
+  schedule: "0 4 * * *"  # Daily at 4 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: velero
+          containers:
+          - name: backup-validator
+            image: velero/velero:v1.12.0
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Validating latest backups..."
+              velero backup get --sort-by=.metadata.creationTimestamp | tail -5
+              
+              echo ""
+              echo "Checking backup status..."
+              for backup in $(velero backup get -o name | head -3); do
+                velero backup describe $backup | grep -E "Status|Errors|Warnings"
+              done
+              
+              echo ""
+              echo "Validating snapshot status..."
+              velero snapshot get
+            restartPolicy: OnFailure
+---
+# Alert for backup failures
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: velero-alerts
+  namespace: velero
+spec:
+  groups:
+  - name: velero
+    interval: 30s
+    rules:
+    - alert: VeleroBackupFailed
+      expr: velero_backup_failure_total > 0
+      for: 1h
+      annotations:
+        summary: "Velero backup failed"
+        description: "Backup {{ $labels.backup }} failed"
+    
+    - alert: VeleroBackupTakingTooLong
+      expr: time() - velero_backup_last_successful_timestamp > 86400
+      for: 30m
+      annotations:
+        summary: "No successful backup in last 24 hours"
+        description: "Last successful backup was {{ $value }} seconds ago"

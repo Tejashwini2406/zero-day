@@ -1,0 +1,334 @@
+# Default values for zero-day-saas Helm chart
+# Production-ready configuration
+
+# Global settings
+global:
+  environment: production
+  domain: zero-day.io
+  imagePullSecrets: []
+  imagePullPolicy: IfNotPresent
+
+# High Availability settings
+highAvailability:
+  enabled: true
+  replicas:
+    graphBuilder: 3
+    inferenceService: 3
+    uiDashboard: 2
+    containmentOperator: 2
+  podAntiAffinity: preferred
+  podDisruptionBudget: true
+
+# Multi-Tenancy settings
+multiTenancy:
+  enabled: true
+  namespacePerTenant: true
+  resourceQuotasEnabled: true
+  networkPoliciesEnabled: true
+  defaultStorageSize: 10Gi
+  defaultBillingTier: standard
+
+# Security settings
+security:
+  enabled: true
+  tls:
+    enabled: true
+    interServiceMTLS: true
+    certManager:
+      enabled: true
+      issuer: letsencrypt-prod
+  authentication:
+    enabled: true
+    jwtSecrets:
+      enabled: true
+      expirationSeconds: 3600
+    rbac:
+      enabled: true
+  auditLogging:
+    enabled: true
+    retention: 30days
+  networkPolicies:
+    enabled: true
+    strictMode: true
+  podSecurityPolicy:
+    enabled: true
+
+# Graph-Builder configuration
+graphBuilder:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: zero-day/graph-builder
+    tag: v7
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  kafka:
+    brokers: "kafka:9092"
+    topic: security-events
+    consumerGroup: graph-builder
+  windowSize: 60
+  windowStep: 30
+  probes:
+    liveness:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 60
+    readiness:
+      enabled: true
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+# Inference Service configuration
+inferenceService:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: zero-day/inference
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  mode: heuristic
+  port: 8080
+  probes:
+    liveness:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 30
+    readiness:
+      enabled: true
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+# UI Dashboard configuration
+uiDashboard:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: zero-day/ui
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  port: 5000
+  gunicorn:
+    workers: 2
+    timeout: 120
+    workerClass: sync
+    keepAlive: 5
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/rate-limit: "100"
+    hosts:
+      - host: ui.zero-day.io
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: ui-tls
+        hosts:
+          - ui.zero-day.io
+
+# Containment Operator configuration
+containmentOperator:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: zero-day/containment-operator
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Kafka configuration
+kafka:
+  enabled: true
+  replicaCount: 3
+  persistence:
+    enabled: true
+    size: 50Gi
+  zookeeper:
+    replicaCount: 3
+  metrics:
+    kafka:
+      enabled: true
+    jmx:
+      enabled: true
+
+# Prometheus monitoring
+prometheus:
+  enabled: true
+  replicaCount: 1
+  retention: 30d
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+
+# Grafana dashboards
+grafana:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  persistence:
+    enabled: true
+    size: 10Gi
+  datasources:
+    prometheus:
+      enabled: true
+      url: http://prometheus:9090
+
+# OTEL Collector configuration
+otelCollector:
+  enabled: true
+  mode: daemonset
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  receivers:
+    otlp:
+      enabled: true
+      protocols:
+        grpc:
+          port: 4317
+        http:
+          port: 4318
+  exporters:
+    prometheus:
+      enabled: true
+    logging:
+      enabled: true
+
+# Fluent-bit logging
+fluentBit:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  outputs:
+    - name: stdout
+    - name: stackdriver
+
+# Backup and disaster recovery
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: 30days
+  velero:
+    enabled: true
+    storageLocation: s3://backups
+    volumeSnapshotLocation: aws
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  apiGateway:
+    enabled: true
+    rateLimiting:
+      enabled: true
+      rpm: 1000
+    authentication:
+      enabled: true
+      jwt:
+        enabled: true
+
+# Persistence
+persistence:
+  enabled: true
+  storageClass: standard
+  graphs:
+    size: 100Gi
+  models:
+    size: 50Gi
+  backups:
+    size: 500Gi
+
+# Auto-scaling
+autoscaling:
+  enabled: true
+  minReplicas:
+    graphBuilder: 3
+    inferenceService: 3
+  maxReplicas:
+    graphBuilder: 10
+    inferenceService: 15
+  targetCPU: 75
+  targetMemory: 80
+
+# Cost optimization
+costOptimization:
+  enabled: true
+  preemptibleNodes: true
+  nodeSelectorTerms:
+    - key: workload
+      operator: In
+      values:
+      - general
+      - detection
+
+# Notifications and alerting
+notifications:
+  enabled: true
+  slack:
+    enabled: true
+    webhook: ""
+  email:
+    enabled: true
+    recipients: []
+  pagerduty:
+    enabled: true
+    integrationKey: ""
+
+# Feature flags
+features:
+  mlMode: false
+  advancedAnalytics: true
+  customRules: true
+  anomalyDetection: true
