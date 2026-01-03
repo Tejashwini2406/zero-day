@@ -4,3 +4,9 @@ torch
 torch-geometric
 optuna
 shap
+
+# Added for dataset loading and lightweight baselines
+pandas
+scikit-learn
+joblib
+requests

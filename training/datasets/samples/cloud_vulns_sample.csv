@@ -1,0 +1,4 @@
+vuln_id,provider,service,cvss,description
+CVE-2023-0001,AWS,S3,9.8,Improper access control allowing data exfiltration
+CVE-2022-1234,GCP,Compute,7.5,Privilege escalation via metadata service
+CVE-2021-4321,Azure,Functions,8.1,Remote code execution in function runtime

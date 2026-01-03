@@ -1,0 +1,6 @@
+duration,src_bytes,dst_bytes,service,flag,land,wrong_fragment,urgent,label
+0,0,0,http,SF,0,0,0,normal
+0,491,0,http,SF,0,0,0,normal
+2,0,0,ftp,SF,0,0,0,neptune
+10,124,200,http,SF,0,0,0,normal
+0,0,100,other,S0,0,0,0,smurf

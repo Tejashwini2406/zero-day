@@ -1,0 +1,9 @@
+{"timestamp": "2026-01-03T18:08:29.166349Z", "pod_name": "app-1", "namespace": "prod", "bytes": 653, "dst_ip": "10.2.97.175", "syscall_count": 8}
+{"timestamp": "2026-01-03T18:08:30.166349Z", "pod_name": "app-8", "namespace": "prod", "bytes": 1827, "dst_ip": "10.2.194.119", "syscall_count": 13}
+{"timestamp": "2026-01-03T18:08:31.166349Z", "pod_name": "app-5", "namespace": "prod", "bytes": 153, "dst_ip": "10.1.134.253", "syscall_count": 4}
+{"timestamp": "2026-01-03T18:08:32.166349Z", "pod_name": "app-1", "namespace": "prod", "bytes": 1795, "dst_ip": "10.0.165.151", "syscall_count": 17}
+{"timestamp": "2026-01-03T18:08:33.166349Z", "pod_name": "app-2", "namespace": "prod", "bytes": 1757, "dst_ip": "10.2.99.71", "syscall_count": 20}
+{"timestamp": "2026-01-03T18:09:29.166349Z", "pod_name": "compromised-pod", "namespace": "prod", "bytes": 11488, "dst_ip": "203.0.113.45", "syscall_count": 265}
+{"timestamp": "2026-01-03T18:09:29.216349Z", "pod_name": "compromised-pod", "namespace": "prod", "bytes": 10099, "dst_ip": "203.0.113.45", "syscall_count": 246}
+{"timestamp": "2026-01-03T18:09:29.266349Z", "pod_name": "compromised-pod", "namespace": "prod", "bytes": 9858, "dst_ip": "203.0.113.45", "syscall_count": 230}
+{"timestamp": "2026-01-03T18:09:29.316349Z", "pod_name": "compromised-pod", "namespace": "prod", "bytes": 11842, "dst_ip": "203.0.113.45", "syscall_count": 285}

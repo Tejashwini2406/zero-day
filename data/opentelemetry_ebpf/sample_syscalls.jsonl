@@ -1,0 +1,4 @@
+{"timestamp":"2026-01-03T18:11:00.000000Z","pod":"app-1","pid":1234,"syscall":"open","args":"/etc/passwd","ret":3}
+{"timestamp":"2026-01-03T18:11:00.100000Z","pod":"app-1","pid":1234,"syscall":"write","args":"socket","ret":128}
+{"timestamp":"2026-01-03T18:11:00.200000Z","pod":"app-2","pid":2345,"syscall":"connect","args":"203.0.113.45:443","ret":0}
+{"timestamp":"2026-01-03T18:11:00.300000Z","pod":"compromised-pod","pid":9999,"syscall":"sendto","args":"203.0.113.45:53","ret":5120}

@@ -1,0 +1,4 @@
+{"timestamp":"2026-01-03T18:12:00.000000Z","src_pod":"app-1","dst_pod":"db-1","bytes":120}
+{"timestamp":"2026-01-03T18:12:00.500000Z","src_pod":"app-2","dst_pod":"db-1","bytes":200}
+{"timestamp":"2026-01-03T18:12:01.000000Z","src_pod":"app-1","dst_pod":"cache-1","bytes":50}
+{"timestamp":"2026-01-03T18:12:02.000000Z","src_pod":"compromised-pod","dst_pod":"external-1","bytes":15000}

@@ -1,0 +1,5 @@
+{"timestamp": "2026-01-03T18:10:00.000000Z", "pod_name": "frontend-1", "namespace": "staging", "bytes": 120, "dst_ip": "10.1.2.3", "syscall_count": 3}
+{"timestamp": "2026-01-03T18:10:01.000000Z", "pod_name": "frontend-2", "namespace": "staging", "bytes": 200, "dst_ip": "10.1.2.4", "syscall_count": 4}
+{"timestamp": "2026-01-03T18:10:02.000000Z", "pod_name": "backend-1", "namespace": "staging", "bytes": 5000, "dst_ip": "203.0.113.12", "syscall_count": 150}
+{"timestamp": "2026-01-03T18:10:02.100000Z", "pod_name": "backend-1", "namespace": "staging", "bytes": 7000, "dst_ip": "203.0.113.12", "syscall_count": 180}
+{"timestamp": "2026-01-03T18:10:02.200000Z", "pod_name": "backend-1", "namespace": "staging", "bytes": 6500, "dst_ip": "203.0.113.12", "syscall_count": 160}
